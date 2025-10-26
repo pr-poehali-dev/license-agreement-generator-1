@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,6 +34,21 @@ const Index = () => {
     email: ''
   });
 
+  useEffect(() => {
+    const fetchNextNumber = async () => {
+      try {
+        const response = await fetch('https://functions.poehali.dev/44c90102-922d-422d-a7ab-ea007b0a1d1a');
+        const data = await response.json();
+        if (data.next_number) {
+          setFormData(prev => ({ ...prev, contract_number: String(data.next_number) }));
+        }
+      } catch (error) {
+        console.error('Failed to fetch next number:', error);
+      }
+    };
+    fetchNextNumber();
+  }, []);
+
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -50,7 +65,6 @@ const Index = () => {
 
   const handleGenerate = async () => {
     const requiredFields: (keyof FormData)[] = [
-      'contract_number', 
       'contract_date', 
       'citizenship', 
       'full_name_genitive', 
@@ -75,7 +89,6 @@ const Index = () => {
 
     try {
       const payload = {
-        номер_договора: formData.contract_number,
         дата_заключения_договора: formatDateToRussian(formData.contract_date),
         graj: formData.citizenship,
         ФИО_ИП_полностью_кого: formData.full_name_genitive,
@@ -85,17 +98,35 @@ const Index = () => {
         mail: formData.email
       };
 
-      console.log('Generating document with data:', payload);
-
-      toast({
-        title: "Договор сгенерирован!",
-        description: "Документ отправлен в Telegram",
+      const response = await fetch('https://functions.poehali.dev/74c4ea92-6ade-4ffd-941c-c83f543fbfe5', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
       });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast({
+          title: "Договор сгенерирован!",
+          description: `Договор №${result.contract_number} отправлен в Telegram`,
+        });
+        
+        const nextResponse = await fetch('https://functions.poehali.dev/44c90102-922d-422d-a7ab-ea007b0a1d1a');
+        const nextData = await nextResponse.json();
+        if (nextData.next_number) {
+          setFormData(prev => ({ ...prev, contract_number: String(nextData.next_number) }));
+        }
+      } else {
+        throw new Error(result.error || 'Ошибка генерации');
+      }
 
     } catch (error) {
       toast({
         title: "Ошибка генерации",
-        description: "Попробуйте еще раз",
+        description: error instanceof Error ? error.message : "Попробуйте еще раз",
         variant: "destructive"
       });
     } finally {
@@ -152,11 +183,12 @@ const Index = () => {
                     <Label htmlFor="contract_number" className="text-slate-700">Номер договора</Label>
                     <Input
                       id="contract_number"
-                      placeholder="25/10/2025"
+                      placeholder="1"
                       value={formData.contract_number}
-                      onChange={(e) => handleInputChange('contract_number', e.target.value)}
-                      className="transition-all focus:ring-2 focus:ring-primary/20"
+                      disabled
+                      className="transition-all bg-slate-100 cursor-not-allowed"
                     />
+                    <p className="text-xs text-slate-500">Номер присваивается автоматически</p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="contract_date" className="text-slate-700">Дата заключения договора</Label>

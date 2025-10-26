@@ -1,0 +1,31 @@
+{
+  "tests": [
+    {
+      "name": "Test OPTIONS request for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": "",
+      "bodyMatcher": "exact"
+    },
+    {
+      "name": "Test contract generation with valid data",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "дата_заключения_договора": "25 октября 2025 г.",
+        "graj": "Германии",
+        "ФИО_ИП_полностью_кого": "EDUARD FRANK IOSIFOVIC",
+        "ФИО_ИП_кратко": "EDUARD F.I.",
+        "NIK": "EDDI$",
+        "PAS": "GER: L8V2RCZ80",
+        "mail": "mr-frank-eduard@web.de"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
