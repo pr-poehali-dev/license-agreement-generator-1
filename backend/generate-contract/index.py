@@ -49,8 +49,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         contract_number = result[0] if result else 1
         
         conn.commit()
+        
+        cur.execute('SELECT template_data FROM template_storage WHERE id = 1')
+        template_result = cur.fetchone()
+        
         cur.close()
         conn.close()
+        
+        if not template_result or not template_result[0]:
+            raise Exception('Template not found. Please upload template.docx first via /434 page')
+        
+        template_bytes = bytes(template_result[0])
+        template_io = io.BytesIO(template_bytes)
         
         replacements = {
             '{{номер_договора}}': str(contract_number),
@@ -65,7 +75,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             '{{РЕКВИЗИТЫ_БАНК}}': body_data.get('РЕКВИЗИТЫ_БАНК', '')
         }
         
-        doc = Document('/tmp/template.docx')
+        doc = Document(template_io)
         
         for paragraph in doc.paragraphs:
             for key, value in replacements.items():
@@ -104,12 +114,31 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         telegram_token = os.environ.get('TELEGRAM_BOT_TOKEN', '')
         chat_id = os.environ.get('TELEGRAM_CHAT_ID', '')
         
+        nickname = body_data.get('NIK', 'Unknown')
+        
+        cover_image_b64 = body_data.get('cover_image', '')
+        if cover_image_b64:
+            import base64
+            cover_image_bytes = base64.b64decode(cover_image_b64)
+            cover_image_name = body_data.get('cover_image_name', 'cover.jpg')
+            
+            photo_files = {'photo': (cover_image_name, io.BytesIO(cover_image_bytes))}
+            photo_data = {
+                'chat_id': chat_id,
+                'caption': f'🎨 Обложка для {nickname}'
+            }
+            photo_url = f'https://api.telegram.org/bot{telegram_token}/sendPhoto'
+            photo_response = requests.post(photo_url, files=photo_files, data=photo_data)
+            
+            if photo_response.status_code != 200:
+                raise Exception(f'Telegram photo error: {photo_response.text}')
+        
         files = {
-            'document': (f'Договор_{contract_number}.docx', output, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+            'document': (f'{nickname}_Договор_{contract_number}.docx', output, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
         }
         data = {
             'chat_id': chat_id,
-            'caption': f'Лицензионный договор №{contract_number}'
+            'caption': f'🎵 {nickname} - Лицензионный договор №{contract_number}'
         }
         
         telegram_url = f'https://api.telegram.org/bot{telegram_token}/sendDocument'

@@ -71,7 +71,21 @@ const Index = () => {
   }, []);
 
   const handleInputChange = (field: keyof FormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      
+      if (field === 'full_name_genitive') {
+        const parts = value.trim().split(/\s+/);
+        if (parts.length === 3) {
+          const shortName = `${parts[0]} ${parts[1][0]}.${parts[2][0]}.`;
+          updated.short_name = shortName;
+        } else {
+          updated.short_name = '';
+        }
+      }
+      
+      return updated;
+    });
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,10 +128,28 @@ const Index = () => {
       });
       return;
     }
+    
+    const fullNameParts = formData.full_name_genitive.trim().split(/\s+/);
+    if (fullNameParts.length !== 3) {
+      toast({
+        title: "Неверный формат ФИО",
+        description: "ФИО должно состоять ровно из 3 слов (Фамилия Имя Отчество)",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setIsGenerating(true);
 
     try {
+      let coverImageBase64 = '';
+      if (formData.cover_image) {
+        const arrayBuffer = await formData.cover_image.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuffer);
+        const binary = bytes.reduce((acc, byte) => acc + String.fromCharCode(byte), '');
+        coverImageBase64 = btoa(binary);
+      }
+
       const payload = {
         дата_заключения_договора: formatDateToRussian(formData.contract_date),
         graj: formData.citizenship,
@@ -127,7 +159,9 @@ const Index = () => {
         PAS: formData.passport,
         mail: formData.email,
         ИНН_SWIFT: formData.inn_swift,
-        РЕКВИЗИТЫ_БАНК: formData.bank_details
+        РЕКВИЗИТЫ_БАНК: formData.bank_details,
+        cover_image: coverImageBase64,
+        cover_image_name: formData.cover_image?.name || ''
       };
 
       const response = await fetch('https://functions.poehali.dev/74c4ea92-6ade-4ffd-941c-c83f543fbfe5', {
@@ -238,17 +272,24 @@ const Index = () => {
                       onChange={(e) => handleInputChange('full_name_genitive', e.target.value)}
                       className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
                     />
+                    {formData.full_name_genitive && (
+                      <p className="text-xs text-[#FFD700]/60">
+                        {formData.full_name_genitive.trim().split(/\s+/).length === 3 
+                          ? `✓ ФИО для подписи: ${formData.short_name}`
+                          : '⚠ Введите ровно 3 слова'}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label className="text-[#FFD700]">ФИО для подписи *</Label>
+                    <Label className="text-[#FFD700]">ФИО для подписи (формируется автоматически)</Label>
                     <Input
-                      placeholder="Костырев В.Н."
+                      placeholder="Иванов И.И."
                       value={formData.short_name}
-                      onChange={(e) => handleInputChange('short_name', e.target.value)}
-                      className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
+                      disabled
+                      className="bg-[#0f0f0f]/50 border-[#333] text-white/70 cursor-not-allowed"
                     />
                   </div>
 
@@ -307,7 +348,7 @@ const Index = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[#FFD700]">Изображение (будет вставлено вместо )</Label>
+                  <Label className="text-[#FFD700]">Изображение обложки (отправится вместе с договором)</Label>
                   <div className="flex items-center gap-4">
                     <Button
                       type="button"
@@ -322,7 +363,7 @@ const Index = () => {
                     </span>
                   </div>
                   <p className="text-xs text-[#FFD700]/60">
-                    Изображение будет автоматически уменьшено до 150x150 пикселей
+                    Изображение будет отправлено в оригинальном размере
                   </p>
                   <input
                     ref={fileInputRef}

@@ -2,6 +2,7 @@ import json
 import os
 import base64
 from typing import Dict, Any
+import psycopg2
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
@@ -40,11 +41,23 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         else:
             file_content = body.encode() if isinstance(body, str) else body
         
-        template_path = '/tmp/template.docx'
-        with open(template_path, 'wb') as f:
-            f.write(file_content)
-        
         file_size = len(file_content)
+        
+        db_url = os.environ.get('DATABASE_URL')
+        if not db_url:
+            raise Exception('DATABASE_URL not found')
+        
+        conn = psycopg2.connect(db_url)
+        cur = conn.cursor()
+        
+        cur.execute(
+            'UPDATE template_storage SET template_data = %s, filename = %s, file_size = %s, uploaded_at = CURRENT_TIMESTAMP WHERE id = 1',
+            (psycopg2.Binary(file_content), 'template.docx', file_size)
+        )
+        
+        conn.commit()
+        cur.close()
+        conn.close()
         
         return {
             'statusCode': 200,
