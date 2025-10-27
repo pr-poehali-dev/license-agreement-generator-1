@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import Icon from '@/components/ui/icon';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import Icon from '@/components/ui/icon';
 
 interface FormData {
   contract_number: string;
@@ -16,15 +16,31 @@ interface FormData {
   short_name: string;
   nickname: string;
   passport: string;
-  email: string;
   inn_swift: string;
   bank_details: string;
+  email: string;
+  cover_image: File | null;
 }
+
+const COUNTRIES = [
+  'Выберите гражданство',
+  'Российская Федерация',
+  'Азербайджанская Республика',
+  'Республика Армения',
+  'Республика Беларусь',
+  'Республика Казахстан',
+  'Кыргызская Республика',
+  'Республика Молдова',
+  'Республика Таджикистан',
+  'Туркменистан',
+  'Республика Узбекистан',
+  'Другое (укажите)'
+];
 
 const Index = () => {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('form');
   const [isGenerating, setIsGenerating] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState<FormData>({
     contract_number: '',
     contract_date: '',
@@ -33,9 +49,10 @@ const Index = () => {
     short_name: '',
     nickname: '',
     passport: '',
-    email: '',
     inn_swift: '',
-    bank_details: ''
+    bank_details: '',
+    email: '',
+    cover_image: null
   });
 
   useEffect(() => {
@@ -55,6 +72,13 @@ const Index = () => {
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData(prev => ({ ...prev, cover_image: file }));
+    }
   };
 
   const formatDateToRussian = (dateStr: string): string => {
@@ -143,396 +167,193 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <Icon name="FileText" size={28} className="text-primary" />
-            <h1 className="text-2xl font-semibold text-slate-900">Генератор лицензионных договоров</h1>
+    <div className="min-h-screen bg-[#121212]">
+      <header className="bg-black border-b border-[#333] sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center gap-4">
+            <h1 className="text-6xl font-bold gold-text gold-glow">420</h1>
+            <h2 className="text-xl text-[#FFD700]">Генератор лицензионных договоров</h2>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-5xl">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-8">
-            <TabsTrigger value="form" className="flex items-center gap-2">
-              <Icon name="Edit" size={16} />
-              <span className="hidden sm:inline">Форма</span>
-            </TabsTrigger>
-            <TabsTrigger value="instructions" className="flex items-center gap-2">
-              <Icon name="BookOpen" size={16} />
-              <span className="hidden sm:inline">Инструкция</span>
-            </TabsTrigger>
-            <TabsTrigger value="examples" className="flex items-center gap-2">
-              <Icon name="Lightbulb" size={16} />
-              <span className="hidden sm:inline">Примеры</span>
-            </TabsTrigger>
-            <TabsTrigger value="faq" className="flex items-center gap-2">
-              <Icon name="HelpCircle" size={16} />
-              <span className="hidden sm:inline">FAQ</span>
-            </TabsTrigger>
-            <TabsTrigger value="privacy" className="flex items-center gap-2">
-              <Icon name="Shield" size={16} />
-              <span className="hidden sm:inline">Защита данных</span>
-            </TabsTrigger>
-          </TabsList>
+      <main className="container mx-auto px-4 py-12 max-w-4xl">
+        <div className="text-center mb-8">
+          <p className="text-[#FFD700] text-lg">Заполните форму для автоматического создания пакета документов</p>
+        </div>
 
-          <TabsContent value="form" className="animate-fade-in">
-            <Card className="p-8 shadow-lg">
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold text-slate-900 mb-2">Лицензионный договор</h2>
-                <p className="text-slate-600 text-sm">Заполните все поля для генерации договора</p>
+        <Card className="p-8 bg-[#1a1a1a] border-[#333]">
+          <div className="space-y-8">
+            <div>
+              <h3 className="text-xl font-semibold text-[#FFD700] mb-6 pb-2 border-b-2 border-[#FFD700]">Реквизиты договора</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-[#FFD700]">Номер договора</Label>
+                  <div className="text-white text-lg font-medium px-4 py-2 bg-[#0f0f0f] rounded-md border border-[#333]">
+                    № {formData.contract_number}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[#FFD700]">Дата заключения договора *</Label>
+                  <Input
+                    type="date"
+                    value={formData.contract_date}
+                    onChange={(e) => handleInputChange('contract_date', e.target.value)}
+                    className="bg-[#0f0f0f] border-[#d32f2f] text-white focus:border-[#FFD700] focus:ring-[#FFD700]"
+                  />
+                  {formData.contract_date && (
+                    <p className="text-xs text-[#FFD700]/60">
+                      Будет: {formatDateToRussian(formData.contract_date)}
+                    </p>
+                  )}
+                </div>
               </div>
+            </div>
 
+            <div>
+              <h3 className="text-xl font-semibold text-[#FFD700] mb-6 pb-2 border-b-2 border-[#FFD700]">Данные артиста (Лицензиар)</h3>
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="contract_number" className="text-slate-700">Номер договора</Label>
-                    <Input
-                      id="contract_number"
-                      placeholder="1"
-                      value={formData.contract_number}
-                      disabled
-                      className="transition-all bg-slate-100 cursor-not-allowed"
-                    />
-                    <p className="text-xs text-slate-500">Номер присваивается автоматически</p>
+                    <Label className="text-[#FFD700]">Гражданство *</Label>
+                    <Select value={formData.citizenship} onValueChange={(value) => handleInputChange('citizenship', value)}>
+                      <SelectTrigger className="bg-[#0f0f0f] border-[#d32f2f] text-white">
+                        <SelectValue placeholder="Выберите гражданство" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1a1a] border-[#333]">
+                        {COUNTRIES.map((country) => (
+                          <SelectItem key={country} value={country} className="text-white focus:bg-[#333] focus:text-[#FFD700]">
+                            {country}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="contract_date" className="text-slate-700">Дата заключения договора</Label>
+                    <Label className="text-[#FFD700]">ФИО полностью (три слова) *</Label>
                     <Input
-                      id="contract_date"
-                      type="date"
-                      value={formData.contract_date}
-                      onChange={(e) => handleInputChange('contract_date', e.target.value)}
-                      className="transition-all focus:ring-2 focus:ring-primary/20"
+                      placeholder="Иванов Иван Иванович"
+                      value={formData.full_name_genitive}
+                      onChange={(e) => handleInputChange('full_name_genitive', e.target.value)}
+                      className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
                     />
-                    {formData.contract_date && (
-                      <p className="text-xs text-slate-500 mt-1">
-                        Будет использовано: {formatDateToRussian(formData.contract_date)}
-                      </p>
-                    )}
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-slate-200">
-                  <h3 className="text-lg font-medium text-slate-800 mb-4">Данные лицензиара</h3>
-                  
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="citizenship" className="text-slate-700">Гражданство</Label>
-                      <Input
-                        id="citizenship"
-                        placeholder="Германии"
-                        value={formData.citizenship}
-                        onChange={(e) => handleInputChange('citizenship', e.target.value)}
-                        className="transition-all focus:ring-2 focus:ring-primary/20"
-                      />
-                      <p className="text-xs text-slate-500">В родительном падеже (кого? чего?)</p>
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-[#FFD700]">ФИО для подписи *</Label>
+                    <Input
+                      placeholder="Костырев В.Н."
+                      value={formData.short_name}
+                      onChange={(e) => handleInputChange('short_name', e.target.value)}
+                      className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
+                    />
+                  </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="full_name_genitive" className="text-slate-700">ФИО полностью (в родительном падеже)</Label>
-                      <Input
-                        id="full_name_genitive"
-                        placeholder="EDUARD FRANK IOSIFOVIC"
-                        value={formData.full_name_genitive}
-                        onChange={(e) => handleInputChange('full_name_genitive', e.target.value)}
-                        className="transition-all focus:ring-2 focus:ring-primary/20"
-                      />
-                      <p className="text-xs text-slate-500">Кого? (например: Иванова Ивана Ивановича)</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="short_name" className="text-slate-700">ФИО кратко (для подписи)</Label>
-                        <Input
-                          id="short_name"
-                          placeholder="EDUARD F.I."
-                          value={formData.short_name}
-                          onChange={(e) => handleInputChange('short_name', e.target.value)}
-                          className="transition-all focus:ring-2 focus:ring-primary/20"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="nickname" className="text-slate-700">Творческий псевдоним</Label>
-                        <Input
-                          id="nickname"
-                          placeholder="EDDI$"
-                          value={formData.nickname}
-                          onChange={(e) => handleInputChange('nickname', e.target.value)}
-                          className="transition-all focus:ring-2 focus:ring-primary/20"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="passport" className="text-slate-700">Паспортные данные</Label>
-                      <Input
-                        id="passport"
-                        placeholder="GER: L8V2RCZ80"
-                        value={formData.passport}
-                        onChange={(e) => handleInputChange('passport', e.target.value)}
-                        className="transition-all focus:ring-2 focus:ring-primary/20"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="email" className="text-slate-700">Адрес электронной почты</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="mr-frank-eduard@web.de"
-                        value={formData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        className="transition-all focus:ring-2 focus:ring-primary/20"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="inn_swift" className="text-slate-700">ИНН/SWIFT</Label>
-                      <Input
-                        id="inn_swift"
-                        placeholder="SWIFT: COBADEFF"
-                        value={formData.inn_swift}
-                        onChange={(e) => handleInputChange('inn_swift', e.target.value)}
-                        className="transition-all focus:ring-2 focus:ring-primary/20"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="bank_details" className="text-slate-700">Реквизиты банка</Label>
-                      <Input
-                        id="bank_details"
-                        placeholder="Commerzbank AG Frankfurt am Main"
-                        value={formData.bank_details}
-                        onChange={(e) => handleInputChange('bank_details', e.target.value)}
-                        className="transition-all focus:ring-2 focus:ring-primary/20"
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label className="text-[#FFD700]">Творческий псевдоним *</Label>
+                    <Input
+                      placeholder="EDDI$"
+                      value={formData.nickname}
+                      onChange={(e) => handleInputChange('nickname', e.target.value)}
+                      className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
+                    />
                   </div>
                 </div>
 
-                <div className="pt-6 border-t border-slate-200">
-                  <Button 
-                    onClick={handleGenerate} 
-                    disabled={isGenerating}
-                    className="w-full h-12 text-base font-medium"
-                    size="lg"
-                  >
-                    {isGenerating ? (
-                      <>
-                        <Icon name="Loader2" size={20} className="mr-2 animate-spin" />
-                        Генерация документа...
-                      </>
-                    ) : (
-                      <>
-                        <Icon name="FileCheck" size={20} className="mr-2" />
-                        Сгенерировать договор
-                      </>
-                    )}
-                  </Button>
-                  <p className="text-xs text-slate-500 text-center mt-3">
-                    Готовый документ будет отправлен в Telegram
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-[#FFD700]">Паспортные данные *</Label>
+                    <Input
+                      placeholder="GER: L8V2RCZ80"
+                      value={formData.passport}
+                      onChange={(e) => handleInputChange('passport', e.target.value)}
+                      className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-[#FFD700]">ИНН/SWIFT код *</Label>
+                    <Input
+                      placeholder="DE8937040044053201300"
+                      value={formData.inn_swift}
+                      onChange={(e) => handleInputChange('inn_swift', e.target.value)}
+                      className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[#FFD700]">Банковские реквизиты *</Label>
+                  <Textarea
+                    placeholder="Bank: Deutsche Bank, Account: 123456789"
+                    value={formData.bank_details}
+                    onChange={(e) => handleInputChange('bank_details', e.target.value)}
+                    className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700] min-h-[100px]"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[#FFD700]">Email *</Label>
+                  <Input
+                    type="email"
+                    placeholder="mr-frank-eduard@web.de"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[#FFD700]">Изображение (будет вставлено вместо )</Label>
+                  <div className="flex items-center gap-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="bg-[#0f0f0f] border-[#FFD700] text-[#FFD700] hover:bg-[#FFD700] hover:text-black"
+                    >
+                      Выберите файл
+                    </Button>
+                    <span className="text-sm text-gray-400">
+                      {formData.cover_image ? formData.cover_image.name : 'Файл не выбран'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#FFD700]/60">
+                    Изображение будет автоматически уменьшено до 150x150 пикселей
                   </p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
                 </div>
               </div>
-            </Card>
-          </TabsContent>
+            </div>
 
-          <TabsContent value="instructions" className="animate-fade-in">
-            <Card className="p-8 shadow-lg">
-              <h2 className="text-xl font-semibold text-slate-900 mb-6">Инструкция по использованию</h2>
-              
-              <div className="space-y-6">
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                    1
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900 mb-2">Заполните форму</h3>
-                    <p className="text-slate-600">Внесите все необходимые данные в поля формы. Все поля обязательны для заполнения.</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                    2
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900 mb-2">Проверьте данные</h3>
-                    <p className="text-slate-600">Убедитесь, что все данные введены корректно, особенно ФИО и паспортные данные.</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                    3
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900 mb-2">Сгенерируйте договор</h3>
-                    <p className="text-slate-600">Нажмите кнопку "Сгенерировать договор". Готовый документ будет отправлен в Telegram.</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                    4
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900 mb-2">Получите документ</h3>
-                    <p className="text-slate-600">Проверьте Telegram и скачайте готовый договор в формате DOCX.</p>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="examples" className="animate-fade-in">
-            <Card className="p-8 shadow-lg">
-              <h2 className="text-xl font-semibold text-slate-900 mb-6">Примеры заполнения полей</h2>
-              
-              <div className="space-y-4">
-                <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                  <p className="font-medium text-slate-900 mb-2">Номер договора</p>
-                  <p className="text-slate-600 text-sm mb-1">Примеры: <code className="bg-white px-2 py-1 rounded">25/10/2025</code>, <code className="bg-white px-2 py-1 rounded">001-2025</code></p>
-                </div>
-
-                <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                  <p className="font-medium text-slate-900 mb-2">Гражданство</p>
-                  <p className="text-slate-600 text-sm mb-1">В родительном падеже: <code className="bg-white px-2 py-1 rounded">Германии</code>, <code className="bg-white px-2 py-1 rounded">России</code>, <code className="bg-white px-2 py-1 rounded">Франции</code></p>
-                </div>
-
-                <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                  <p className="font-medium text-slate-900 mb-2">ФИО полностью (в родительном падеже)</p>
-                  <p className="text-slate-600 text-sm mb-1">Кого?: <code className="bg-white px-2 py-1 rounded">EDUARD FRANK IOSIFOVIC</code></p>
-                  <p className="text-slate-600 text-sm">или: <code className="bg-white px-2 py-1 rounded">Иванова Ивана Ивановича</code></p>
-                </div>
-
-                <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                  <p className="font-medium text-slate-900 mb-2">ФИО кратко</p>
-                  <p className="text-slate-600 text-sm">Примеры: <code className="bg-white px-2 py-1 rounded">EDUARD F.I.</code>, <code className="bg-white px-2 py-1 rounded">Иванов И.И.</code></p>
-                </div>
-
-                <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                  <p className="font-medium text-slate-900 mb-2">Паспортные данные</p>
-                  <p className="text-slate-600 text-sm">Примеры: <code className="bg-white px-2 py-1 rounded">GER: L8V2RCZ80</code>, <code className="bg-white px-2 py-1 rounded">РФ: 4509 123456</code></p>
-                </div>
-              </div>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="faq" className="animate-fade-in">
-            <Card className="p-8 shadow-lg">
-              <h2 className="text-xl font-semibold text-slate-900 mb-6">Часто задаваемые вопросы</h2>
-              
-              <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="item-1">
-                  <AccordionTrigger>Какой формат документа я получу?</AccordionTrigger>
-                  <AccordionContent>
-                    Вы получите готовый договор в формате DOCX, который можно открыть в Microsoft Word, Google Docs или любом другом текстовом редакторе.
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="item-2">
-                  <AccordionTrigger>Сколько времени занимает генерация?</AccordionTrigger>
-                  <AccordionContent>
-                    Генерация документа занимает от 5 до 30 секунд. Готовый договор сразу отправляется вам в Telegram.
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="item-3">
-                  <AccordionTrigger>Можно ли изменить данные после генерации?</AccordionTrigger>
-                  <AccordionContent>
-                    Да, вы можете редактировать полученный документ в любом текстовом редакторе. Также вы можете сгенерировать новый договор с исправленными данными.
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="item-4">
-                  <AccordionTrigger>Имеет ли договор юридическую силу?</AccordionTrigger>
-                  <AccordionContent>
-                    Да, сгенерированный договор является юридически значимым документом при условии правильного заполнения всех данных и подписания сторонами.
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="item-5">
-                  <AccordionTrigger>Что делать, если не получил документ в Telegram?</AccordionTrigger>
-                  <AccordionContent>
-                    Проверьте папку "Сохраненные сообщения" или чаты с ботом. Если документ не пришел в течение минуты, попробуйте сгенерировать заново.
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="privacy" className="animate-fade-in">
-            <Card className="p-8 shadow-lg">
-              <div className="flex items-start gap-4 mb-6">
-                <Icon name="Shield" size={32} className="text-primary flex-shrink-0" />
-                <div>
-                  <h2 className="text-xl font-semibold text-slate-900 mb-2">Защита данных и конфиденциальность</h2>
-                  <p className="text-slate-600">Ваша безопасность - наш приоритет</p>
-                </div>
-              </div>
-              
-              <div className="space-y-6">
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <Icon name="CheckCircle2" size={20} className="text-green-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <h3 className="font-semibold text-green-900 mb-1">Данные не сохраняются</h3>
-                      <p className="text-green-700 text-sm">Все введенные данные обрабатываются в режиме реального времени и не сохраняются на сервере после генерации документа.</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <Icon name="Lock" size={20} className="text-green-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <h3 className="font-semibold text-green-900 mb-1">Защищенное соединение</h3>
-                      <p className="text-green-700 text-sm">Все данные передаются по защищенному HTTPS соединению с шифрованием.</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <Icon name="Eye" size={20} className="text-green-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <h3 className="font-semibold text-green-900 mb-1">Конфиденциальность</h3>
-                      <p className="text-green-700 text-sm">Мы не передаем ваши персональные данные третьим лицам и не используем их в коммерческих целях.</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <Icon name="FileCheck" size={20} className="text-green-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <h3 className="font-semibold text-green-900 mb-1">Юридическая чистота</h3>
-                      <p className="text-green-700 text-sm">Генерация производится точно по шаблону без изменения структуры и формулировок документа.</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-slate-200">
-                  <p className="text-sm text-slate-600">
-                    <Icon name="Info" size={16} className="inline mr-1" />
-                    Документ отправляется напрямую в ваш Telegram и удаляется с сервера сразу после отправки.
-                  </p>
-                </div>
-              </div>
-            </Card>
-          </TabsContent>
-        </Tabs>
+            <div className="pt-6">
+              <Button
+                onClick={handleGenerate}
+                disabled={isGenerating}
+                className="w-full bg-gradient-to-r from-[#FFD700] to-[#FFA500] hover:from-[#FFA500] hover:to-[#FFD700] text-black font-bold text-lg py-6 rounded-lg shadow-lg hover:shadow-[#FFD700]/50 transition-all duration-300"
+              >
+                {isGenerating ? (
+                  <span className="flex items-center gap-2">
+                    <Icon name="Loader2" className="animate-spin" size={24} />
+                    Генерация...
+                  </span>
+                ) : (
+                  'СГЕНЕРИРОВАТЬ ДОГОВОР'
+                )}
+              </Button>
+            </div>
+          </div>
+        </Card>
       </main>
-
-      <footer className="mt-16 py-8 bg-white border-t border-slate-200">
-        <div className="container mx-auto px-4 text-center text-slate-600 text-sm">
-          <p>© 2025 Генератор лицензионных договоров. Все данные обрабатываются конфиденциально.</p>
-        </div>
-      </footer>
     </div>
   );
 };

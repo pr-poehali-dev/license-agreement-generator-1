@@ -101,8 +101,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         doc.save(output)
         output.seek(0)
         
-        telegram_token = '7736309480:AAF9dPExmu0EnHPXSY0D65MxfEV62SBtLNo'
-        chat_id = body_data.get('chat_id', '5570679206')
+        telegram_token = os.environ.get('TELEGRAM_BOT_TOKEN', '')
+        chat_id = os.environ.get('TELEGRAM_CHAT_ID', '')
         
         files = {
             'document': (f'Договор_{contract_number}.docx', output, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
