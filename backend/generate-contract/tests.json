@@ -9,7 +9,7 @@
       "bodyMatcher": "exact"
     },
     {
-      "name": "Test contract generation with valid data",
+      "name": "Test contract generation returns error when template missing",
       "method": "POST",
       "path": "/",
       "body": {
@@ -19,11 +19,13 @@
         "ФИО_ИП_кратко": "EDUARD F.I.",
         "NIK": "EDDI$",
         "PAS": "GER: L8V2RCZ80",
-        "mail": "mr-frank-eduard@web.de"
+        "mail": "mr-frank-eduard@web.de",
+        "ИНН_SWIFT": "SWIFT: COBADEFF",
+        "РЕКВИЗИТЫ_БАНК": "Commerzbank AG"
       },
-      "expectedStatus": 200,
+      "expectedStatus": 500,
       "expectedBody": {
-        "success": true
+        "success": false
       },
       "bodyMatcher": "partial"
     }

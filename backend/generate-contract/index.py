@@ -60,10 +60,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             '{{ФИО_ИП_кратко}}': body_data.get('ФИО_ИП_кратко', ''),
             '{{NIK}}': body_data.get('NIK', ''),
             '{{PAS}}': body_data.get('PAS', ''),
-            '{{mail}}': body_data.get('mail', '')
+            '{{mail}}': body_data.get('mail', ''),
+            '{{ИНН_SWIFT}}': body_data.get('ИНН_SWIFT', ''),
+            '{{РЕКВИЗИТЫ_БАНК}}': body_data.get('РЕКВИЗИТЫ_БАНК', '')
         }
         
-        doc = Document('template.docx')
+        doc = Document('/tmp/template.docx')
         
         for paragraph in doc.paragraphs:
             for key, value in replacements.items():

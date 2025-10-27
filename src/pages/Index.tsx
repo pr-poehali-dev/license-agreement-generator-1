@@ -17,6 +17,8 @@ interface FormData {
   nickname: string;
   passport: string;
   email: string;
+  inn_swift: string;
+  bank_details: string;
 }
 
 const Index = () => {
@@ -31,7 +33,9 @@ const Index = () => {
     short_name: '',
     nickname: '',
     passport: '',
-    email: ''
+    email: '',
+    inn_swift: '',
+    bank_details: ''
   });
 
   useEffect(() => {
@@ -71,7 +75,9 @@ const Index = () => {
       'short_name', 
       'nickname', 
       'passport', 
-      'email'
+      'email',
+      'inn_swift',
+      'bank_details'
     ];
     
     const emptyFields = requiredFields.filter(field => !formData[field]);
@@ -95,7 +101,9 @@ const Index = () => {
         ФИО_ИП_кратко: formData.short_name,
         NIK: formData.nickname,
         PAS: formData.passport,
-        mail: formData.email
+        mail: formData.email,
+        ИНН_SWIFT: formData.inn_swift,
+        РЕКВИЗИТЫ_БАНК: formData.bank_details
       };
 
       const response = await fetch('https://functions.poehali.dev/74c4ea92-6ade-4ffd-941c-c83f543fbfe5', {
@@ -277,6 +285,28 @@ const Index = () => {
                         placeholder="mr-frank-eduard@web.de"
                         value={formData.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
+                        className="transition-all focus:ring-2 focus:ring-primary/20"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="inn_swift" className="text-slate-700">ИНН/SWIFT</Label>
+                      <Input
+                        id="inn_swift"
+                        placeholder="SWIFT: COBADEFF"
+                        value={formData.inn_swift}
+                        onChange={(e) => handleInputChange('inn_swift', e.target.value)}
+                        className="transition-all focus:ring-2 focus:ring-primary/20"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="bank_details" className="text-slate-700">Реквизиты банка</Label>
+                      <Input
+                        id="bank_details"
+                        placeholder="Commerzbank AG Frankfurt am Main"
+                        value={formData.bank_details}
+                        onChange={(e) => handleInputChange('bank_details', e.target.value)}
                         className="transition-all focus:ring-2 focus:ring-primary/20"
                       />
                     </div>
