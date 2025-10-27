@@ -44,10 +44,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         with open(template_path, 'wb') as f:
             f.write(file_content)
         
-        persistent_path = 'template.docx'
-        with open(persistent_path, 'wb') as f:
-            f.write(file_content)
-        
         file_size = len(file_content)
         
         return {
