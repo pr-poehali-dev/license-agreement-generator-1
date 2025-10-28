@@ -38,14 +38,14 @@ const Upload = () => {
 
     try {
       const arrayBuffer = await file.arrayBuffer();
-      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      const bytes = new Uint8Array(arrayBuffer);
 
       const response = await fetch('https://functions.poehali.dev/cbc1d24a-1165-4535-ba22-270c4cf061f5', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/octet-stream'
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
         },
-        body: base64
+        body: bytes
       });
 
       const result = await response.json();

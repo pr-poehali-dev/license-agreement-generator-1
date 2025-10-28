@@ -36,12 +36,23 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         body = event.get('body', '')
         is_base64 = event.get('isBase64Encoded', False)
         
+        if not body:
+            raise Exception('No file data provided')
+        
         if is_base64:
             file_content = base64.b64decode(body)
+        elif isinstance(body, str):
+            try:
+                file_content = base64.b64decode(body)
+            except Exception:
+                file_content = body.encode('utf-8')
         else:
-            file_content = body.encode() if isinstance(body, str) else body
+            file_content = body
         
         file_size = len(file_content)
+        
+        if file_size < 100:
+            raise Exception(f'File too small ({file_size} bytes), likely corrupt')
         
         db_url = os.environ.get('DATABASE_URL')
         if not db_url:

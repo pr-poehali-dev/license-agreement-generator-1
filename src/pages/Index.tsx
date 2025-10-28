@@ -12,6 +12,7 @@ interface FormData {
   contract_number: string;
   contract_date: string;
   citizenship: string;
+  custom_citizenship: string;
   full_name_genitive: string;
   short_name: string;
   nickname: string;
@@ -23,7 +24,6 @@ interface FormData {
 }
 
 const COUNTRIES = [
-  'Выберите гражданство',
   'Российская Федерация',
   'Азербайджанская Республика',
   'Республика Армения',
@@ -34,7 +34,7 @@ const COUNTRIES = [
   'Республика Таджикистан',
   'Туркменистан',
   'Республика Узбекистан',
-  'Другое (укажите)'
+  'Другое'
 ];
 
 const Index = () => {
@@ -45,6 +45,7 @@ const Index = () => {
     contract_number: '',
     contract_date: '',
     citizenship: '',
+    custom_citizenship: '',
     full_name_genitive: '',
     short_name: '',
     nickname: '',
@@ -54,6 +55,13 @@ const Index = () => {
     email: '',
     cover_image: null
   });
+  
+  const today = new Date();
+  const maxDate = new Date();
+  maxDate.setDate(today.getDate() + 14);
+  
+  const minDateStr = today.toISOString().split('T')[0];
+  const maxDateStr = maxDate.toISOString().split('T')[0];
 
   useEffect(() => {
     const fetchNextNumber = async () => {
@@ -106,19 +114,36 @@ const Index = () => {
   };
 
   const handleGenerate = async () => {
-    const requiredFields: (keyof FormData)[] = [
-      'contract_date', 
-      'citizenship', 
-      'full_name_genitive', 
-      'short_name', 
-      'nickname', 
-      'passport', 
-      'email',
-      'inn_swift',
-      'bank_details'
-    ];
+    if (!formData.contract_date || !formData.full_name_genitive || !formData.short_name || 
+        !formData.nickname || !formData.passport || !formData.email || 
+        !formData.inn_swift || !formData.bank_details) {
+      toast({
+        title: "Заполните все поля",
+        description: "Все поля обязательны для заполнения",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    const emptyFields = requiredFields.filter(field => !formData[field]);
+    if (!formData.citizenship) {
+      toast({
+        title: "Выберите гражданство",
+        description: "Поле гражданство обязательно",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (formData.citizenship === 'Другое' && !formData.custom_citizenship) {
+      toast({
+        title: "Укажите гражданство",
+        description: "Введите свое гражданство в поле",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const emptyFields = [];
     
     if (emptyFields.length > 0) {
       toast({
@@ -150,9 +175,13 @@ const Index = () => {
         coverImageBase64 = btoa(binary);
       }
 
+      const finalCitizenship = formData.citizenship === 'Другое' 
+        ? formData.custom_citizenship 
+        : formData.citizenship;
+      
       const payload = {
         дата_заключения_договора: formatDateToRussian(formData.contract_date),
-        graj: formData.citizenship,
+        graj: finalCitizenship,
         ФИО_ИП_полностью_кого: formData.full_name_genitive,
         ФИО_ИП_кратко: formData.short_name,
         NIK: formData.nickname,
@@ -231,6 +260,8 @@ const Index = () => {
                   <Label className="text-[#FFD700]">Дата заключения договора *</Label>
                   <Input
                     type="date"
+                    min={minDateStr}
+                    max={maxDateStr}
                     value={formData.contract_date}
                     onChange={(e) => handleInputChange('contract_date', e.target.value)}
                     className="bg-[#0f0f0f] border-[#d32f2f] text-white focus:border-[#FFD700] focus:ring-[#FFD700]"
@@ -240,6 +271,9 @@ const Index = () => {
                       Будет: {formatDateToRussian(formData.contract_date)}
                     </p>
                   )}
+                  <p className="text-xs text-[#FFD700]/40">
+                    Доступны даты: {new Date(minDateStr).toLocaleDateString('ru-RU')} - {new Date(maxDateStr).toLocaleDateString('ru-RU')}
+                  </p>
                 </div>
               </div>
             </div>
@@ -250,18 +284,40 @@ const Index = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label className="text-[#FFD700]">Гражданство *</Label>
-                    <Select value={formData.citizenship} onValueChange={(value) => handleInputChange('citizenship', value)}>
-                      <SelectTrigger className="bg-[#0f0f0f] border-[#d32f2f] text-white">
-                        <SelectValue placeholder="Выберите гражданство" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#1a1a1a] border-[#333]">
-                        {COUNTRIES.map((country) => (
-                          <SelectItem key={country} value={country} className="text-white focus:bg-[#333] focus:text-[#FFD700]">
-                            {country}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {formData.citizenship === 'Другое' ? (
+                      <div className="space-y-2">
+                        <Input
+                          placeholder="Укажите гражданство"
+                          value={formData.custom_citizenship}
+                          onChange={(e) => handleInputChange('custom_citizenship', e.target.value)}
+                          className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setFormData(prev => ({ ...prev, citizenship: '', custom_citizenship: '' }));
+                          }}
+                          className="text-[#FFD700]/60 hover:text-[#FFD700] text-xs"
+                        >
+                          ← Выбрать из списка
+                        </Button>
+                      </div>
+                    ) : (
+                      <Select value={formData.citizenship} onValueChange={(value) => handleInputChange('citizenship', value)}>
+                        <SelectTrigger className="bg-[#0f0f0f] border-[#d32f2f] text-white">
+                          <SelectValue placeholder="Выберите гражданство" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#1a1a1a] border-[#333]">
+                          {COUNTRIES.map((country) => (
+                            <SelectItem key={country} value={country} className="text-white focus:bg-[#333] focus:text-[#FFD700]">
+                              {country}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
 
                   <div className="space-y-2">
