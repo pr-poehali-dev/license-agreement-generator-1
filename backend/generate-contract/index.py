@@ -59,7 +59,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if not template_result or not template_result[0]:
             raise Exception('Template not found. Please upload template.docx first via /434 page')
         
-        template_bytes = bytes(template_result[0])
+        template_data = template_result[0]
+        if isinstance(template_data, memoryview):
+            template_bytes = template_data.tobytes()
+        else:
+            template_bytes = bytes(template_data)
+        
         template_io = io.BytesIO(template_bytes)
         
         replacements = {

@@ -1,0 +1,19 @@
+{
+  "tests": [
+    {
+      "name": "Test OPTIONS request",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Test webhook endpoint responds",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "update_id": 123
+      },
+      "expectedStatus": 200
+    }
+  ]
+}

@@ -1,4 +1,6 @@
 {
+  "telegram-bot": "https://functions.poehali.dev/b0472937-6fce-4bcf-8b17-b2fa9e778632",
+  "send-reminders": "https://functions.poehali.dev/f3174375-4263-4d4b-ad83-4a5d72c5ee1f",
   "upload-template": "https://functions.poehali.dev/cbc1d24a-1165-4535-ba22-270c4cf061f5",
   "get-next-number": "https://functions.poehali.dev/44c90102-922d-422d-a7ab-ea007b0a1d1a",
   "generate-contract": "https://functions.poehali.dev/74c4ea92-6ade-4ffd-941c-c83f543fbfe5"
