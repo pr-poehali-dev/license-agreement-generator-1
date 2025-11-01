@@ -94,35 +94,33 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         doc = Document(template_io)
         
-        for paragraph in doc.paragraphs:
+        def replace_in_paragraph(paragraph):
+            """Replace placeholders in paragraph (handles runs splitting)"""
+            full_text = paragraph.text
             for key, value in replacements.items():
-                if key in paragraph.text:
-                    for run in paragraph.runs:
-                        run.text = run.text.replace(key, value)
+                if key in full_text:
+                    full_text = full_text.replace(key, value)
+            
+            if full_text != paragraph.text:
+                for run in paragraph.runs:
+                    run.text = ''
+                if paragraph.runs:
+                    paragraph.runs[0].text = full_text
+        
+        for paragraph in doc.paragraphs:
+            replace_in_paragraph(paragraph)
         
         for table in doc.tables:
             for row in table.rows:
                 for cell in row.cells:
                     for paragraph in cell.paragraphs:
-                        for key, value in replacements.items():
-                            if key in paragraph.text:
-                                for run in paragraph.runs:
-                                    run.text = run.text.replace(key, value)
+                        replace_in_paragraph(paragraph)
         
         for section in doc.sections:
-            header = section.header
-            for paragraph in header.paragraphs:
-                for key, value in replacements.items():
-                    if key in paragraph.text:
-                        for run in paragraph.runs:
-                            run.text = run.text.replace(key, value)
-            
-            footer = section.footer
-            for paragraph in footer.paragraphs:
-                for key, value in replacements.items():
-                    if key in paragraph.text:
-                        for run in paragraph.runs:
-                            run.text = run.text.replace(key, value)
+            for paragraph in section.header.paragraphs:
+                replace_in_paragraph(paragraph)
+            for paragraph in section.footer.paragraphs:
+                replace_in_paragraph(paragraph)
         
         output = io.BytesIO()
         doc.save(output)
