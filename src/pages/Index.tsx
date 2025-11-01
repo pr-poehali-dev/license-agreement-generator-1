@@ -201,7 +201,14 @@ const Index = () => {
         body: JSON.stringify(payload)
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('HTTP Error Response:', response.status, errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
       const result = await response.json();
+      console.log('Contract generation result:', result);
 
       if (result.success) {
         toast({

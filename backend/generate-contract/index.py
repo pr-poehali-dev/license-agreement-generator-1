@@ -167,6 +167,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
         
     except Exception as e:
+        error_msg = str(e)
+        print(f'ERROR in generate-contract: {error_msg}')
+        import traceback
+        traceback.print_exc()
+        
         return {
             'statusCode': 500,
             'headers': {
@@ -176,6 +181,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False,
             'body': json.dumps({
                 'success': False,
-                'error': str(e)
+                'error': error_msg
             })
         }
