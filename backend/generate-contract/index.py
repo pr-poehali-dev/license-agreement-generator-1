@@ -36,6 +36,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     try:
         body_data = json.loads(event.get('body', '{}'))
+        print(f'Received payload: {json.dumps(body_data, ensure_ascii=False)}')
         
         db_url = os.environ.get('DATABASE_URL')
         if not db_url:
@@ -86,6 +87,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             '{{ИНН_SWIFT}}': body_data.get('ИНН_SWIFT', ''),
             '{{РЕКВИЗИТЫ_БАНК}}': body_data.get('РЕКВИЗИТЫ_БАНК', '')
         }
+        
+        print(f'Replacements map:')
+        for key, value in replacements.items():
+            print(f'  {key} => {value}')
         
         doc = Document(template_io)
         
