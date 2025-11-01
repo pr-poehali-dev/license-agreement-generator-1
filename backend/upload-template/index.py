@@ -39,13 +39,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if not body:
             raise Exception('No file data provided')
         
-        if is_base64:
+        # Cloud Functions всегда передают бинарные данные как base64 строку
+        if isinstance(body, str):
             file_content = base64.b64decode(body)
-        elif isinstance(body, str):
-            try:
-                file_content = base64.b64decode(body)
-            except Exception:
-                file_content = body.encode('utf-8')
         else:
             file_content = body
         
@@ -53,6 +49,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         if file_size < 100:
             raise Exception(f'File too small ({file_size} bytes), likely corrupt')
+        
+        # Проверка что это действительно DOCX (ZIP файл)
+        if not file_content.startswith(b'PK'):
+            raise Exception(f'Invalid DOCX file format. First bytes: {file_content[:4].hex()}')
         
         db_url = os.environ.get('DATABASE_URL')
         if not db_url:
