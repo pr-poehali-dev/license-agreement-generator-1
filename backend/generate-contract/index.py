@@ -65,6 +65,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         else:
             template_bytes = bytes(template_data)
         
+        print(f'Template size: {len(template_bytes)} bytes')
+        print(f'First 20 bytes (hex): {template_bytes[:20].hex()}')
+        print(f'First 4 bytes should be 504B0304 (PK..): {template_bytes[:4].hex()}')
+        
+        if not template_bytes.startswith(b'PK'):
+            raise Exception(f'Template is corrupted. First bytes: {template_bytes[:10].hex()}. Please re-upload template.docx via /434')
+        
         template_io = io.BytesIO(template_bytes)
         
         replacements = {
