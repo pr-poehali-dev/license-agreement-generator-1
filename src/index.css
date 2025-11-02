@@ -95,4 +95,13 @@
         0 0 40px rgba(255, 215, 0, 0.3);
     }
   }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) sepia(1) saturate(5) hue-rotate(5deg);
+    cursor: pointer;
+  }
+
+  input[type="date"] {
+    color-scheme: dark;
+  }
 }

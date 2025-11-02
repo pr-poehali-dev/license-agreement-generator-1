@@ -85,16 +85,40 @@ export const SongInfoSection = ({
               onChange={onFileSelect}
               className="hidden"
             />
-            <Button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="bg-[#0f0f0f] border-2 border-[#FFD700] text-[#FFD700] hover:bg-[#FFD700] hover:text-black"
-            >
-              <Icon name="Upload" className="mr-2" size={20} />
-              Выбрать изображение
-            </Button>
-            {formData.cover_image && (
-              <span className="text-[#FFD700] text-sm">{formData.cover_image.name}</span>
+            {formData.cover_image ? (
+              <div className="flex items-center gap-4 w-full p-4 bg-[#0f0f0f] border-2 border-[#FFD700] rounded-lg">
+                <img 
+                  src={URL.createObjectURL(formData.cover_image)} 
+                  alt="Preview" 
+                  className="w-20 h-20 object-cover rounded-lg border-2 border-[#FFD700] shadow-lg shadow-[#FFD700]/30"
+                />
+                <div className="flex-1">
+                  <p className="text-[#FFD700] font-semibold">{formData.cover_image.name}</p>
+                  <p className="text-[#FFD700]/60 text-sm">
+                    {(formData.cover_image.size / 1024).toFixed(1)} KB
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-[#FFD700] hover:text-[#FFA500] hover:bg-[#FFD700]/10"
+                >
+                  <Icon name="RefreshCw" size={20} />
+                </Button>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full bg-[#0f0f0f] border-2 border-dashed border-[#FFD700] text-[#FFD700] hover:bg-[#FFD700]/10 hover:border-solid h-24 transition-all"
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <Icon name="Upload" size={32} className="opacity-60" />
+                  <span className="text-sm">Нажмите для загрузки обложки</span>
+                </div>
+              </Button>
             )}
           </div>
         </div>

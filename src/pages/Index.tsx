@@ -7,6 +7,7 @@ import { FormData } from '@/components/contract/types';
 import { ContractDetailsSection } from '@/components/contract/ContractDetailsSection';
 import { PersonalInfoSection } from '@/components/contract/PersonalInfoSection';
 import { SongInfoSection } from '@/components/contract/SongInfoSection';
+import MatrixRain from '@/components/MatrixRain';
 
 const Index = () => {
   const { toast } = useToast();
@@ -211,8 +212,9 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#121212]">
-      <header className="bg-black border-b border-[#333] sticky top-0 z-50">
+    <div className="min-h-screen bg-[#121212] relative">
+      <MatrixRain />
+      <header className="bg-black/90 backdrop-blur-sm border-b border-[#333] sticky top-0 z-50">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center gap-4">
             <h1 className="text-6xl font-bold gold-text gold-glow">420</h1>
@@ -221,12 +223,12 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-12 max-w-4xl">
+      <main className="container mx-auto px-4 py-12 max-w-4xl relative z-10">
         <div className="text-center mb-8">
           <p className="text-[#FFD700] text-lg">Заполните форму для автоматического создания пакета документов</p>
         </div>
 
-        <Card className="p-8 bg-[#1a1a1a] border-[#333]">
+        <Card className="p-8 bg-[#1a1a1a]/95 backdrop-blur-sm border-[#333]">
           <div className="space-y-8">
             <ContractDetailsSection
               formData={formData}

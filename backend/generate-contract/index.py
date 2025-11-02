@@ -137,18 +137,25 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     has_replacements = True
             
             if has_replacements:
-                first_run_font = paragraph.runs[0].font if paragraph.runs else None
+                base_run_font = None
+                for run in paragraph.runs:
+                    if not run.font.bold and run.text.strip():
+                        base_run_font = run.font
+                        break
+                
+                if not base_run_font and paragraph.runs:
+                    base_run_font = paragraph.runs[0].font
                 
                 for run in paragraph.runs:
                     run.text = ''
                 
-                if paragraph.runs and first_run_font:
+                if paragraph.runs and base_run_font:
                     paragraph.runs[0].text = full_text
-                    paragraph.runs[0].font.bold = first_run_font.bold
-                    paragraph.runs[0].font.italic = first_run_font.italic
-                    paragraph.runs[0].font.underline = first_run_font.underline
-                    paragraph.runs[0].font.size = first_run_font.size
-                    paragraph.runs[0].font.name = first_run_font.name
+                    paragraph.runs[0].font.bold = False
+                    paragraph.runs[0].font.italic = base_run_font.italic
+                    paragraph.runs[0].font.underline = base_run_font.underline
+                    paragraph.runs[0].font.size = base_run_font.size
+                    paragraph.runs[0].font.name = base_run_font.name
                 elif paragraph.runs:
                     paragraph.runs[0].text = full_text
         

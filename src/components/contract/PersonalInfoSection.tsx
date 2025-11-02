@@ -46,8 +46,8 @@ export const PersonalInfoSection = ({ formData, onInputChange }: PersonalInfoSec
                 </SelectTrigger>
                 <SelectContent className="bg-[#1a1a1a] border-[#333]">
                   {COUNTRIES.map((country) => (
-                    <SelectItem key={country} value={country} className="text-white focus:bg-[#333] focus:text-[#FFD700]">
-                      {country}
+                    <SelectItem key={country.label} value={country.genitive || country.label} className="text-white focus:bg-[#333] focus:text-[#FFD700]">
+                      {country.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
