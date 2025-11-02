@@ -102,16 +102,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         doc = Document(template_io)
         
-        cover_image_io = None
+        cover_image_bytes = None
         if body_data.get('cover_image'):
             try:
-                img_data = base64.b64decode(body_data['cover_image'])
+                import base64 as b64
+                img_data = b64.b64decode(body_data['cover_image'])
                 img = Image.open(io.BytesIO(img_data))
                 img = img.convert('RGB')
                 img_resized = img.resize((150, 150), Image.LANCZOS)
-                cover_image_io = io.BytesIO()
-                img_resized.save(cover_image_io, format='PNG')
-                cover_image_io.seek(0)
+                img_io = io.BytesIO()
+                img_resized.save(img_io, format='PNG')
+                cover_image_bytes = img_io.getvalue()
                 print('Cover image resized to 150x150')
             except Exception as e:
                 print(f'Failed to process cover image: {e}')
@@ -120,11 +121,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             """Replace placeholders in paragraph (handles runs splitting)"""
             full_text = paragraph.text
             
-            if '{{img}}' in full_text and cover_image_io:
+            if '{{img}}' in full_text and cover_image_bytes:
                 for run in paragraph.runs:
                     run.text = ''
                 if paragraph.runs:
-                    paragraph.runs[0].add_picture(cover_image_io, width=Inches(1.57))
+                    img_stream = io.BytesIO(cover_image_bytes)
+                    paragraph.runs[0].add_picture(img_stream, width=Inches(1.57))
                 return
             
             for key, value in replacements.items():
