@@ -93,7 +93,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             '{{isp}}': body_data.get('isp', ''),
             '{{avt}}': body_data.get('avt', ''),
             '{{avttext}}': body_data.get('avttext', ''),
-            '{{fongr}}': body_data.get('fongr', '')
+            '{{fongr}}': body_data.get('fongr', ''),
+            '{{procc}}': body_data.get('procc', '')
         }
         
         print(f'Replacements map:')
@@ -129,14 +130,26 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     paragraph.runs[0].add_picture(img_stream, width=Inches(1.57))
                 return
             
+            has_replacements = False
             for key, value in replacements.items():
                 if key in full_text:
                     full_text = full_text.replace(key, value)
+                    has_replacements = True
             
-            if full_text != paragraph.text:
+            if has_replacements:
+                first_run_font = paragraph.runs[0].font if paragraph.runs else None
+                
                 for run in paragraph.runs:
                     run.text = ''
-                if paragraph.runs:
+                
+                if paragraph.runs and first_run_font:
+                    paragraph.runs[0].text = full_text
+                    paragraph.runs[0].font.bold = first_run_font.bold
+                    paragraph.runs[0].font.italic = first_run_font.italic
+                    paragraph.runs[0].font.underline = first_run_font.underline
+                    paragraph.runs[0].font.size = first_run_font.size
+                    paragraph.runs[0].font.name = first_run_font.name
+                elif paragraph.runs:
                     paragraph.runs[0].text = full_text
         
         for paragraph in doc.paragraphs:

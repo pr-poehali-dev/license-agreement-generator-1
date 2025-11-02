@@ -1,46 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
-
-interface FormData {
-  contract_number: string;
-  contract_date: string;
-  citizenship: string;
-  custom_citizenship: string;
-  full_name_genitive: string;
-  short_name: string;
-  nickname: string;
-  passport: string;
-  inn_swift: string;
-  bank_details: string;
-  email: string;
-  cover_image: File | null;
-  song_name: string;
-  performer: string;
-  lyrics_author: string;
-  music_author: string;
-  phonogram_creator: string;
-}
-
-const COUNTRIES = [
-  'Российская Федерация',
-  'Азербайджанская Республика',
-  'Республика Армения',
-  'Республика Беларусь',
-  'Республика Казахстан',
-  'Кыргызская Республика',
-  'Республика Молдова',
-  'Республика Таджикистан',
-  'Туркменистан',
-  'Республика Узбекистан',
-  'Другое'
-];
+import { FormData } from '@/components/contract/types';
+import { ContractDetailsSection } from '@/components/contract/ContractDetailsSection';
+import { PersonalInfoSection } from '@/components/contract/PersonalInfoSection';
+import { SongInfoSection } from '@/components/contract/SongInfoSection';
 
 const Index = () => {
   const { toast } = useToast();
@@ -63,7 +29,8 @@ const Index = () => {
     performer: '',
     lyrics_author: '',
     music_author: '',
-    phonogram_creator: ''
+    phonogram_creator: '',
+    payment_percentage: ''
   });
   
   const today = new Date();
@@ -128,7 +95,7 @@ const Index = () => {
         !formData.nickname || !formData.passport || !formData.email || 
         !formData.inn_swift || !formData.bank_details || !formData.song_name || 
         !formData.performer || !formData.lyrics_author || !formData.music_author || 
-        !formData.phonogram_creator) {
+        !formData.phonogram_creator || !formData.payment_percentage) {
       toast({
         title: "Заполните все поля",
         description: "Все поля обязательны для заполнения",
@@ -150,17 +117,6 @@ const Index = () => {
       toast({
         title: "Укажите гражданство",
         description: "Введите свое гражданство в поле",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    const emptyFields = [];
-    
-    if (emptyFields.length > 0) {
-      toast({
-        title: "Заполните все поля",
-        description: "Все поля обязательны для заполнения",
         variant: "destructive"
       });
       return;
@@ -207,7 +163,8 @@ const Index = () => {
         isp: formData.performer,
         avt: formData.lyrics_author,
         avttext: formData.music_author,
-        fongr: formData.phonogram_creator
+        fongr: formData.phonogram_creator,
+        procc: formData.payment_percentage
       };
 
       const response = await fetch('https://functions.poehali.dev/74c4ea92-6ade-4ffd-941c-c83f543fbfe5', {
@@ -271,249 +228,24 @@ const Index = () => {
 
         <Card className="p-8 bg-[#1a1a1a] border-[#333]">
           <div className="space-y-8">
-            <div>
-              <h3 className="text-xl font-semibold text-[#FFD700] mb-6 pb-2 border-b-2 border-[#FFD700]">Реквизиты договора</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label className="text-[#FFD700]">Номер договора</Label>
-                  <div className="text-white text-lg font-medium px-4 py-2 bg-[#0f0f0f] rounded-md border border-[#333]">
-                    № {formData.contract_number}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[#FFD700]">Дата заключения договора *</Label>
-                  <Input
-                    type="date"
-                    min={minDateStr}
-                    max={maxDateStr}
-                    value={formData.contract_date}
-                    onChange={(e) => handleInputChange('contract_date', e.target.value)}
-                    className="bg-[#0f0f0f] border-[#d32f2f] text-white focus:border-[#FFD700] focus:ring-[#FFD700]"
-                  />
-                  {formData.contract_date && (
-                    <p className="text-xs text-[#FFD700]/60">
-                      Будет: {formatDateToRussian(formData.contract_date)}
-                    </p>
-                  )}
-                  <p className="text-xs text-[#FFD700]/40">
-                    Доступны даты: {new Date(minDateStr).toLocaleDateString('ru-RU')} - {new Date(maxDateStr).toLocaleDateString('ru-RU')}
-                  </p>
-                </div>
-              </div>
-            </div>
+            <ContractDetailsSection
+              formData={formData}
+              minDateStr={minDateStr}
+              maxDateStr={maxDateStr}
+              onInputChange={handleInputChange}
+            />
 
-            <div>
-              <h3 className="text-xl font-semibold text-[#FFD700] mb-6 pb-2 border-b-2 border-[#FFD700]">Данные артиста (Лицензиар)</h3>
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className="text-[#FFD700]">Гражданство *</Label>
-                    {formData.citizenship === 'Другое' ? (
-                      <div className="space-y-2">
-                        <Input
-                          placeholder="Укажите гражданство"
-                          value={formData.custom_citizenship}
-                          onChange={(e) => handleInputChange('custom_citizenship', e.target.value)}
-                          className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setFormData(prev => ({ ...prev, citizenship: '', custom_citizenship: '' }));
-                          }}
-                          className="text-[#FFD700]/60 hover:text-[#FFD700] text-xs"
-                        >
-                          ← Выбрать из списка
-                        </Button>
-                      </div>
-                    ) : (
-                      <Select value={formData.citizenship} onValueChange={(value) => handleInputChange('citizenship', value)}>
-                        <SelectTrigger className="bg-[#0f0f0f] border-[#d32f2f] text-white">
-                          <SelectValue placeholder="Выберите гражданство" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-[#1a1a1a] border-[#333]">
-                          {COUNTRIES.map((country) => (
-                            <SelectItem key={country} value={country} className="text-white focus:bg-[#333] focus:text-[#FFD700]">
-                              {country}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  </div>
+            <PersonalInfoSection
+              formData={formData}
+              onInputChange={handleInputChange}
+            />
 
-                  <div className="space-y-2">
-                    <Label className="text-[#FFD700]">ФИО полностью (три слова) *</Label>
-                    <Input
-                      placeholder="Иванов Иван Иванович"
-                      value={formData.full_name_genitive}
-                      onChange={(e) => handleInputChange('full_name_genitive', e.target.value)}
-                      className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
-                    />
-                    {formData.full_name_genitive && (
-                      <p className="text-xs text-[#FFD700]/60">
-                        {formData.full_name_genitive.trim().split(/\s+/).length === 3 
-                          ? `✓ ФИО для подписи: ${formData.short_name}`
-                          : '⚠ Введите ровно 3 слова'}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className="text-[#FFD700]">ФИО для подписи (формируется автоматически)</Label>
-                    <Input
-                      placeholder="Иванов И.И."
-                      value={formData.short_name}
-                      disabled
-                      className="bg-[#0f0f0f]/50 border-[#333] text-white/70 cursor-not-allowed"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-[#FFD700]">Творческий псевдоним *</Label>
-                    <Input
-                      placeholder="EDDI$"
-                      value={formData.nickname}
-                      onChange={(e) => handleInputChange('nickname', e.target.value)}
-                      className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className="text-[#FFD700]">Паспортные данные *</Label>
-                    <Input
-                      placeholder="GER: L8V2RCZ80"
-                      value={formData.passport}
-                      onChange={(e) => handleInputChange('passport', e.target.value)}
-                      className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-[#FFD700]">ИНН/SWIFT код *</Label>
-                    <Input
-                      placeholder="DE8937040044053201300"
-                      value={formData.inn_swift}
-                      onChange={(e) => handleInputChange('inn_swift', e.target.value)}
-                      className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-[#FFD700]">Банковские реквизиты *</Label>
-                  <Textarea
-                    placeholder="Bank: Deutsche Bank, Account: 123456789"
-                    value={formData.bank_details}
-                    onChange={(e) => handleInputChange('bank_details', e.target.value)}
-                    className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700] min-h-[100px]"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-[#FFD700]">Email *</Label>
-                  <Input
-                    type="email"
-                    placeholder="mr-frank-eduard@web.de"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-[#FFD700]">Изображение обложки (отправится вместе с договором)</Label>
-                  <div className="flex items-center gap-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="bg-[#0f0f0f] border-[#FFD700] text-[#FFD700] hover:bg-[#FFD700] hover:text-black"
-                    >
-                      Выберите файл
-                    </Button>
-                    <span className="text-sm text-gray-400">
-                      {formData.cover_image ? formData.cover_image.name : 'Файл не выбран'}
-                    </span>
-                  </div>
-                  <p className="text-xs text-[#FFD700]/60">
-                    Изображение будет отправлено в оригинальном размере
-                  </p>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-semibold text-[#FFD700] mb-6 pb-2 border-b-2 border-[#FFD700]">Информация о песне</h3>
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className="text-[#FFD700]">Название песни *</Label>
-                    <Input
-                      placeholder="Название композиции"
-                      value={formData.song_name}
-                      onChange={(e) => handleInputChange('song_name', e.target.value)}
-                      className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-[#FFD700]">Исполнитель *</Label>
-                    <Input
-                      placeholder="Имя исполнителя"
-                      value={formData.performer}
-                      onChange={(e) => handleInputChange('performer', e.target.value)}
-                      className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className="text-[#FFD700]">Автор слов *</Label>
-                    <Input
-                      placeholder="Автор текста песни"
-                      value={formData.lyrics_author}
-                      onChange={(e) => handleInputChange('lyrics_author', e.target.value)}
-                      className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-[#FFD700]">Автор музыки *</Label>
-                    <Input
-                      placeholder="Композитор"
-                      value={formData.music_author}
-                      onChange={(e) => handleInputChange('music_author', e.target.value)}
-                      className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-[#FFD700]">Создатель фонограммы *</Label>
-                  <Input
-                    placeholder="Звукорежиссёр / продюсер"
-                    value={formData.phonogram_creator}
-                    onChange={(e) => handleInputChange('phonogram_creator', e.target.value)}
-                    className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
-                  />
-                </div>
-              </div>
-            </div>
+            <SongInfoSection
+              formData={formData}
+              fileInputRef={fileInputRef}
+              onInputChange={handleInputChange}
+              onFileSelect={handleFileSelect}
+            />
 
             <div className="pt-6">
               <Button
