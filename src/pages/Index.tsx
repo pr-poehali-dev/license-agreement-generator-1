@@ -216,9 +216,17 @@ const Index = () => {
       <MatrixRain />
       <header className="bg-black/90 backdrop-blur-sm border-b border-[#333] sticky top-0 z-50">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center gap-4">
-            <h1 className="text-6xl font-bold gold-text gold-glow">420</h1>
-            <h2 className="text-xl text-[#FFD700]">Генератор лицензионных договоров</h2>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <h1 className="text-6xl font-bold gold-text gold-glow">420</h1>
+              <h2 className="text-xl text-[#FFD700]">Генератор лицензионных договоров</h2>
+            </div>
+            <a
+              href="/docs"
+              className="px-4 py-2 bg-[#FFD700] text-black font-semibold rounded-lg hover:bg-[#FFC700] transition-colors"
+            >
+              📚 Документация
+            </a>
           </div>
         </div>
       </header>
