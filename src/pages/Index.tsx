@@ -21,6 +21,11 @@ interface FormData {
   bank_details: string;
   email: string;
   cover_image: File | null;
+  song_name: string;
+  performer: string;
+  lyrics_author: string;
+  music_author: string;
+  phonogram_creator: string;
 }
 
 const COUNTRIES = [
@@ -53,7 +58,12 @@ const Index = () => {
     inn_swift: '',
     bank_details: '',
     email: '',
-    cover_image: null
+    cover_image: null,
+    song_name: '',
+    performer: '',
+    lyrics_author: '',
+    music_author: '',
+    phonogram_creator: ''
   });
   
   const today = new Date();
@@ -116,7 +126,9 @@ const Index = () => {
   const handleGenerate = async () => {
     if (!formData.contract_date || !formData.full_name_genitive || !formData.short_name || 
         !formData.nickname || !formData.passport || !formData.email || 
-        !formData.inn_swift || !formData.bank_details) {
+        !formData.inn_swift || !formData.bank_details || !formData.song_name || 
+        !formData.performer || !formData.lyrics_author || !formData.music_author || 
+        !formData.phonogram_creator) {
       toast({
         title: "Заполните все поля",
         description: "Все поля обязательны для заполнения",
@@ -190,7 +202,12 @@ const Index = () => {
         ИНН_SWIFT: formData.inn_swift,
         РЕКВИЗИТЫ_БАНК: formData.bank_details,
         cover_image: coverImageBase64,
-        cover_image_name: formData.cover_image?.name || ''
+        cover_image_name: formData.cover_image?.name || '',
+        naz: formData.song_name,
+        isp: formData.performer,
+        avt: formData.lyrics_author,
+        avttext: formData.music_author,
+        fongr: formData.phonogram_creator
       };
 
       const response = await fetch('https://functions.poehali.dev/74c4ea92-6ade-4ffd-941c-c83f543fbfe5', {
@@ -434,6 +451,65 @@ const Index = () => {
                     accept="image/*"
                     onChange={handleFileSelect}
                     className="hidden"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-semibold text-[#FFD700] mb-6 pb-2 border-b-2 border-[#FFD700]">Информация о песне</h3>
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-[#FFD700]">Название песни *</Label>
+                    <Input
+                      placeholder="Название композиции"
+                      value={formData.song_name}
+                      onChange={(e) => handleInputChange('song_name', e.target.value)}
+                      className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-[#FFD700]">Исполнитель *</Label>
+                    <Input
+                      placeholder="Имя исполнителя"
+                      value={formData.performer}
+                      onChange={(e) => handleInputChange('performer', e.target.value)}
+                      className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-[#FFD700]">Автор слов *</Label>
+                    <Input
+                      placeholder="Автор текста песни"
+                      value={formData.lyrics_author}
+                      onChange={(e) => handleInputChange('lyrics_author', e.target.value)}
+                      className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-[#FFD700]">Автор музыки *</Label>
+                    <Input
+                      placeholder="Композитор"
+                      value={formData.music_author}
+                      onChange={(e) => handleInputChange('music_author', e.target.value)}
+                      className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[#FFD700]">Создатель фонограммы *</Label>
+                  <Input
+                    placeholder="Звукорежиссёр / продюсер"
+                    value={formData.phonogram_creator}
+                    onChange={(e) => handleInputChange('phonogram_creator', e.target.value)}
+                    className="bg-[#0f0f0f] border-[#d32f2f] text-white placeholder:text-gray-500 focus:border-[#FFD700] focus:ring-[#FFD700]"
                   />
                 </div>
               </div>

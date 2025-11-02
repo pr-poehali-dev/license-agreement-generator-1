@@ -1,10 +1,13 @@
 import json
 import os
 import io
+import base64
 from typing import Dict, Any
 from docx import Document
+from docx.shared import Inches
 import psycopg2
 import requests
+from PIL import Image
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
@@ -85,7 +88,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             '{{PAS}}': body_data.get('PAS', ''),
             '{{mail}}': body_data.get('mail', ''),
             '{{ИНН_SWIFT}}': body_data.get('ИНН_SWIFT', ''),
-            '{{РЕКВИЗИТЫ_БАНК}}': body_data.get('РЕКВИЗИТЫ_БАНК', '')
+            '{{РЕКВИЗИТЫ_БАНК}}': body_data.get('РЕКВИЗИТЫ_БАНК', ''),
+            '{{naz}}': body_data.get('naz', ''),
+            '{{isp}}': body_data.get('isp', ''),
+            '{{avt}}': body_data.get('avt', ''),
+            '{{avttext}}': body_data.get('avttext', ''),
+            '{{fongr}}': body_data.get('fongr', '')
         }
         
         print(f'Replacements map:')
@@ -94,9 +102,31 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         doc = Document(template_io)
         
+        cover_image_io = None
+        if body_data.get('cover_image'):
+            try:
+                img_data = base64.b64decode(body_data['cover_image'])
+                img = Image.open(io.BytesIO(img_data))
+                img = img.convert('RGB')
+                img_resized = img.resize((150, 150), Image.LANCZOS)
+                cover_image_io = io.BytesIO()
+                img_resized.save(cover_image_io, format='PNG')
+                cover_image_io.seek(0)
+                print('Cover image resized to 150x150')
+            except Exception as e:
+                print(f'Failed to process cover image: {e}')
+        
         def replace_in_paragraph(paragraph):
             """Replace placeholders in paragraph (handles runs splitting)"""
             full_text = paragraph.text
+            
+            if '{{img}}' in full_text and cover_image_io:
+                for run in paragraph.runs:
+                    run.text = ''
+                if paragraph.runs:
+                    paragraph.runs[0].add_picture(cover_image_io, width=Inches(1.57))
+                return
+            
             for key, value in replacements.items():
                 if key in full_text:
                     full_text = full_text.replace(key, value)
